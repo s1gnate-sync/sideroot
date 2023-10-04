@@ -1,3 +1,7 @@
+- Can be used as chroot replacement
+- To run app with different filesystem view
+- As sudo `sideroot -u 0 -g 0 -- whoami`
+
 ````
 Usage:
  sideroot [options] -- [<program> [<argument>...]]
