@@ -42,7 +42,7 @@ void help() {
 	printf(" -r <root-dir>    Change root directory.\n");
 	printf(" -d <ch-dir>      Set working directory inside chroot (defaults to /).\n");
 	printf(" -u <uid>         Change user inside chroot.\n");
-	printf(" -u <uid>         Change group inside chroot.\n");
+	printf(" -g <gid>         Change group inside chroot.\n");
 	printf(" -b <src<%s<dst>> Bind <src> to <root-dir>/<dst>.\n", sep);
 	printf("                       Multiple instances allowed.\n");
 	printf(" -E               Start with empty environment.\n");
@@ -195,18 +195,17 @@ int main(int argc, char* argv[]) {
 		gid = getgid();	
 
 	TRY_SYSCALL(unshare(CLONE_NEWNS | CLONE_FS | CLONE_THREAD))
-	TRY_SYSCALL(chdir("/"))
-
+	
 	for (int index = 0; index < bind_count; index++) {
 		char *target;
 		asprintf(&target, "%s/%s", root_dir, binds[index].dst);					
 		TRY_SYSCALL(bind(binds[index].src, target))
 	}
 
-
 	if (strcmp(root_dir, "/") != 0) {
 		TRY_SYSCALL(chroot(root_dir))
  		TRY_SYSCALL(bind("/", "/"))
+		TRY_SYSCALL(chdir("/"))
  	}
  	
 	if (proc)
@@ -227,8 +226,8 @@ int main(int argc, char* argv[]) {
 	if (run) 
 		TRY_SYSCALL(mount("none", "/run", "tmpfs", 0, NULL))
 
-  	TRY_SYSCALL(setgid(uid))
-  	TRY_SYSCALL(setuid(gid))
+  	TRY_SYSCALL(setgid(gid))
+  	TRY_SYSCALL(setuid(uid))
 
 	if (clear_env) 
 		clearenv();
